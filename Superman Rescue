@@ -1,0 +1,86 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Superman Rescue")
+
+# Colors
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+
+# Clock
+clock = pygame.time.Clock()
+FPS = 60
+
+# Player (Superman)
+player_size = 50
+player_x = WIDTH // 2
+player_y = HEIGHT - player_size - 10
+player_speed = 7
+
+# NPCs and Bank Robbers
+npc_size = 30
+robber_size = 40
+npc_list = [(random.randint(50, WIDTH-50), random.randint(50, HEIGHT-200)) for _ in range(5)]
+robber_list = [(random.randint(50, WIDTH-50), random.randint(50, HEIGHT-200)) for _ in range(3)]
+
+score = 0
+
+# Game loop
+running = True
+while running:
+    screen.fill(WHITE)
+    
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Player movement
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and player_x - player_speed > 0:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT] and player_x + player_speed + player_size < WIDTH:
+        player_x += player_speed
+    if keys[pygame.K_UP] and player_y - player_speed > 0:
+        player_y -= player_speed
+    if keys[pygame.K_DOWN] and player_y + player_speed + player_size < HEIGHT:
+        player_y += player_speed
+
+    # Draw player
+    pygame.draw.rect(screen, BLUE, (player_x, player_y, player_size, player_size))
+
+    # Draw NPCs
+    for npc in npc_list:
+        pygame.draw.rect(screen, GREEN, (*npc, npc_size, npc_size))
+    
+    # Draw Robbers
+    for robber in robber_list:
+        pygame.draw.rect(screen, RED, (*robber, robber_size, robber_size))
+
+    # Check collisions (Saving NPCs)
+    for npc in npc_list[:]:
+        if pygame.Rect(player_x, player_y, player_size, player_size).colliderect(pygame.Rect(*npc, npc_size, npc_size)):
+            npc_list.remove(npc)
+            score += 10
+            print("Saved an NPC! Score:", score)
+    
+    # Check collisions (Stopping Robbers)
+    for robber in robber_list[:]:
+        if pygame.Rect(player_x, player_y, player_size, player_size).colliderect(pygame.Rect(*robber, robber_size, robber_size)):
+            robber_list.remove(robber)
+            score += 20
+            print("Stopped a robber! Score:", score)
+
+    # Update screen
+    pygame.display.flip()
+    clock.tick(FPS)
+
+pygame.quit()
